@@ -6,6 +6,7 @@ import ru.geekbrains.winter.market.api.CartDto;
 import ru.geekbrains.winter.market.api.StringResponse;
 import ru.geekbrains.winter.market.carts.convertes.CartConverter;
 import ru.geekbrains.winter.market.carts.model.Cart;
+import ru.geekbrains.winter.market.carts.model.CartItem;
 import ru.geekbrains.winter.market.carts.services.CartService;
 
 import java.util.UUID;
@@ -43,6 +44,14 @@ public class CartController {
     @GetMapping("/{uuid}")
     public CartDto getCurrentCart(@RequestHeader(name = "username", required = false) String username, @PathVariable String uuid) {
         String targetUuid = getCartUuid(username, uuid);
+        if (targetUuid.equals(username) && (cartService.getCurrentCart(uuid).getItems().size() > 0)) {
+            for (CartItem item : cartService.getCurrentCart(uuid).getItems()) {
+                for (int i = 0; i < item.getQuantity(); i++) {
+                    cartService.add(targetUuid, item.getProductId());
+                }
+            }
+            cartService.clear(uuid);
+        }
         return cartConverter.entityToDto(cartService.getCurrentCart(targetUuid));
     }
 
